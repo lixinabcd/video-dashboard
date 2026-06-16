@@ -51,7 +51,9 @@ h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
 }
 .section h2 { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
 .section h3 { font-size: 16px; font-weight: 700; margin: 20px 0 12px; }
-.chart-wrap { height: 300px; width: 300px; margin-bottom: 20px; }
+.section-content { display: flex; gap: 24px; align-items: flex-start; }
+.section-content .chart-wrap { height: 300px; width: 300px; flex-shrink: 0; }
+.section-content .rank-list { flex: 1; }
 
 /* ===== Rank List ===== */
 .rank-list { display: flex; flex-direction: column; gap: 8px; }
@@ -138,9 +140,10 @@ function renderSection(id, title, emoji, items, fields) {
   var html = '' +
     '<div class="section" id="' + id + 'Section">' +
       '<h2>' + emoji + ' ' + title + ' · 播放量对比</h2>' +
-      '<div class="chart-wrap"><canvas id="' + id + 'Chart"></canvas></div>' +
-      '<h3>📋 ' + title + '排行榜</h3>' +
-      '<div class="rank-list" id="' + id + 'Rank"></div>' +
+      '<div class="section-content">' +
+        '<div class="chart-wrap"><canvas id="' + id + 'Chart"></canvas></div>' +
+        '<div class="rank-list" id="' + id + 'Rank"></div>' +
+      '</div>' +
     '</div>';
   app.insertAdjacentHTML('beforeend', html);
 
