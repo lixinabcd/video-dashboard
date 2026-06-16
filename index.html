@@ -109,27 +109,17 @@ var DATA = {
   ]
 };
 
-// ===== Stats Cards =====
-function total(arr) { return arr.reduce(function(s, p) { return s + p[1].play; }, 0); }
-function totalPub(arr) { return arr.reduce(function(s, p) { return s + p[1].pub; }, 0); }
-function totalOver(arr) { return arr.reduce(function(s, p) { return s + p[1].over3k; }, 0); }
-
-var all = DATA.persons.slice().concat(DATA.writers.slice());
-var allPlay = total(DATA.persons) + total(DATA.writers);
-var allPub = totalPub(DATA.persons) + totalPub(DATA.writers);
-var allOver = totalOver(DATA.persons) + totalOver(DATA.writers);
-// Deduplicate person-writer same people for unique count
-var allNames = {};
-DATA.persons.forEach(function(p) { allNames[p[0]] = true; });
-DATA.writers.forEach(function(w) { allNames[w[0]] = true; });
-var uniqueCount = Object.keys(allNames).length;
+// ===== Stats Cards (只统计文案数据) =====
+var allPlay = total(DATA.writers);
+var allPub = totalPub(DATA.writers);
+var allOver = totalOver(DATA.writers);
 
 var stats = [
   { label: "总播放量（万）", value: allPlay.toFixed(2) + "万" },
   { label: "总发布条数", value: allPub },
   { label: "上3K总条数", value: allOver },
   { label: "上3K占比", value: (allOver / allPub * 100).toFixed(2) + "%" },
-  { label: "上榜人数", value: uniqueCount + "人" }
+  { label: "美国占比", value: "—" }
 ];
 
 var statsRow = document.getElementById('statsRow');
