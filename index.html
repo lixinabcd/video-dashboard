@@ -189,7 +189,7 @@ function rankList(el, items, fields) {
       '<div class="rn' + medal + '">' + (i + 1) + '</div>' +
       '<div class="nm">' + items[i][0] + '</div>';
     for (var f = 0; f < fields.length; f++) {
-      var v = fields[f].fmt ? fields[f].fmt(items[i][1]) : items[i][1][fields[f].k];
+      var v = fields[f].fmt ? fields[f].fmt(items[i][1][fields[f].k]) : items[i][1][fields[f].k];
       h += '<div class="' + (f === 0 ? 'vl' : 'vl2') + '">' + v + '</div>';
     }
     h += '</div>';
