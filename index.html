@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>6月运营视频播放量排行榜</title>
+<title>6月运营&文案视频播放量排行榜</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 @import url('https://api.fontshare.com/v2/css?f[]=satoshi@500,700&display=swap');
@@ -77,20 +77,14 @@ h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
 .ritem .vl { font-weight: 700; }
 .ritem .vl2 { color: #666; }
 
-.double-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
 @media (max-width: 768px) {
-  .double-grid { grid-template-columns: 1fr; }
   .stats-row { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>🏆 6月运营视频播放量排行榜</h1>
+  <h1>🏆 6月运营&文案视频播放量排行榜</h1>
   <p class="subtitle">月累计播放量（3K起计）· 统计周期：2025年6月</p>
 
   <div class="stats-row" id="statsRow"></div>
@@ -105,22 +99,37 @@ var DATA = {
     ["康慧敏", { play: 1.45, pub: 441, over3k: 1, opct: 0.23, us: 98.60 }],
     ["罗小花", { play: 0.48, pub: 633, over3k: 1, opct: 0.16, us: 46.30 }],
     ["陈思慧", { play: 0.36, pub: 533, over3k: 1, opct: 0.19, us: 94.00 }]
+  ],
+  writers: [
+    ["余晓青", { play: 16.00, pub: 601, over3k: 2, opct: 0.33 }],
+    ["蔡玉婷", { play: 1.81, pub: 453, over3k: 2, opct: 0.44 }],
+    ["王以琳", { play: 0.48, pub: 634, over3k: 1, opct: 0.16 }],
+    ["郑雅斯", { play: 0.00, pub: 231, over3k: 0, opct: 0.00 }],
+    ["陈暖媛", { play: 0.00, pub: 162, over3k: 0, opct: 0.00 }]
   ]
 };
 
-// Stats row
-var totalPlay = DATA.persons.reduce(function(s, p) { return s + p[1].play; }, 0);
-var totalPub = DATA.persons.reduce(function(s, p) { return s + p[1].pub; }, 0);
-var totalOver3k = DATA.persons.reduce(function(s, p) { return s + p[1].over3k; }, 0);
-var avgOpct = totalOver3k / totalPub * 100;
-var avgUs = DATA.persons.reduce(function(s, p) { return s + p[1].us; }, 0) / DATA.persons.length;
+// ===== Stats Cards =====
+function total(arr) { return arr.reduce(function(s, p) { return s + p[1].play; }, 0); }
+function totalPub(arr) { return arr.reduce(function(s, p) { return s + p[1].pub; }, 0); }
+function totalOver(arr) { return arr.reduce(function(s, p) { return s + p[1].over3k; }, 0); }
+
+var all = DATA.persons.slice().concat(DATA.writers.slice());
+var allPlay = total(DATA.persons) + total(DATA.writers);
+var allPub = totalPub(DATA.persons) + totalPub(DATA.writers);
+var allOver = totalOver(DATA.persons) + totalOver(DATA.writers);
+// Deduplicate person-writer same people for unique count
+var allNames = {};
+DATA.persons.forEach(function(p) { allNames[p[0]] = true; });
+DATA.writers.forEach(function(w) { allNames[w[0]] = true; });
+var uniqueCount = Object.keys(allNames).length;
 
 var stats = [
-  { label: "月累计播放量（万）", value: totalPlay.toFixed(2) + "万" },
-  { label: "月累计发布条数", value: totalPub },
-  { label: "上3K总条数", value: totalOver3k },
-  { label: "上3K占比", value: avgOpct.toFixed(2) + "%" },
-  { label: "平均美国占比", value: avgUs.toFixed(2) + "%" }
+  { label: "总播放量（万）", value: allPlay.toFixed(2) + "万" },
+  { label: "总发布条数", value: allPub },
+  { label: "上3K总条数", value: allOver },
+  { label: "上3K占比", value: (allOver / allPub * 100).toFixed(2) + "%" },
+  { label: "上榜人数", value: uniqueCount + "人" }
 ];
 
 var statsRow = document.getElementById('statsRow');
@@ -129,54 +138,47 @@ stats.forEach(function(s) {
     '<div class="stat-card"><div class="label">' + s.label + '</div><div class="value">' + s.value + '</div></div>');
 });
 
-// Render person section
-var app = document.getElementById('app');
+function renderSection(id, title, emoji, items, fields) {
+  var app = document.getElementById('app');
+  var html = '' +
+    '<div class="section" id="' + id + 'Section">' +
+      '<h2>' + emoji + ' ' + title + ' · 播放量对比</h2>' +
+      '<div class="chart-wrap"><canvas id="' + id + 'Chart"></canvas></div>' +
+      '<h3>📋 ' + title + '排行榜</h3>' +
+      '<div class="rank-list" id="' + id + 'Rank"></div>' +
+    '</div>';
+  app.insertAdjacentHTML('beforeend', html);
 
-var personSection = '' +
-  '<div class="section" id="personSection">' +
-    '<h2>👤 运营人员 · 播放量对比</h2>' +
-    '<div class="chart-wrap"><canvas id="personChart"></canvas></div>' +
-    '<h3>📋 运营人员排行榜</h3>' +
-    '<div class="rank-list" id="personRank"></div>' +
-  '</div>';
+  var sorted = items.slice().sort(function(a, b) { return b[1].play - a[1].play; });
 
-app.insertAdjacentHTML('beforeend', personSection);
-
-// Person chart
-var sorted = DATA.persons.slice().sort(function(a, b) { return b[1].play - a[1].play; });
-new Chart(document.getElementById('personChart'), {
-  type: 'bar',
-  data: {
-    labels: sorted.map(function(x) { return x[0]; }),
-    datasets: [{
-      label: '播放量（万）',
-      data: sorted.map(function(x) { return x[1].play; }),
-      backgroundColor: ['#a3e635', '#fbbf24', '#f97316', '#a78bfa'],
-      borderColor: '#000',
-      borderWidth: 1,
-      borderRadius: 6
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      y: { beginAtZero: true, grid: { color: '#e5e5e0' }, border: { color: '#000' } },
-      x: { grid: { display: false }, border: { color: '#000' } }
+  new Chart(document.getElementById(id + 'Chart'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(function(x) { return x[0]; }),
+      datasets: [{
+        label: '播放量（万）',
+        data: sorted.map(function(x) { return x[1].play; }),
+        backgroundColor: ['#a3e635', '#fbbf24', '#f97316', '#a78bfa', '#f472b6', '#34d399'],
+        borderColor: '#000',
+        borderWidth: 1,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: '#e5e5e0' }, border: { color: '#000' } },
+        x: { grid: { display: false }, border: { color: '#000' } }
+      }
     }
-  }
-});
+  });
 
-// Person rank list
-var personFields = [
-  { k: 'play', fmt: function(v) { return v.toFixed(2) + '万'; } },
-  { k: 'pub', fmt: function(v) { return v + '条'; } },
-  { k: 'opct', fmt: function(v) { return v.toFixed(2) + '%'; } },
-  { k: 'us', fmt: function(v) { return v.toFixed(2) + '%'; } }
-];
+  rankList(document.getElementById(id + 'Rank'), items, fields);
+}
 
-function rankList(el, items, fields, extra) {
+function rankList(el, items, fields) {
   var h = '';
   for (var i = 0; i < items.length; i++) {
     var medal = i === 0 ? ' gold' : i === 1 ? ' silver' : i === 2 ? ' bronze' : '';
@@ -192,7 +194,22 @@ function rankList(el, items, fields, extra) {
   el.innerHTML = h;
 }
 
-rankList(document.getElementById('personRank'), DATA.persons, personFields);
+var personFields = [
+  { k: 'play', fmt: function(v) { return v.toFixed(2) + '万'; } },
+  { k: 'pub', fmt: function(v) { return v + '条'; } },
+  { k: 'opct', fmt: function(v) { return v.toFixed(2) + '%'; } },
+  { k: 'us', fmt: function(v) { return v.toFixed(2) + '%'; } }
+];
+
+var writerFields = [
+  { k: 'play', fmt: function(v) { return v.toFixed(2) + '万'; } },
+  { k: 'pub', fmt: function(v) { return v + '条'; } },
+  { k: 'opct', fmt: function(v) { return v.toFixed(2) + '%'; } },
+  { k: 'over3k', fmt: function(v) { return v + '条'; } }
+];
+
+renderSection('person', '运营人员', '👤', DATA.persons, personFields);
+renderSection('writer', '文案人员', '✍️', DATA.writers, writerFields);
 </script>
 </body>
 </html>
