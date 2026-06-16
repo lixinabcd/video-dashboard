@@ -151,32 +151,34 @@ function renderSection(id, title, emoji, items, fields) {
 
   var sorted = items.slice().sort(function(a, b) { return b[1].play - a[1].play; });
 
-  new Chart(document.getElementById(id + 'Chart'), {
-    type: 'bar',
-    data: {
-      labels: sorted.map(function(x) { return x[0]; }),
-      datasets: [{
-        label: '播放量（万）',
-        data: sorted.map(function(x) { return x[1].play; }),
-        backgroundColor: ['#a3e635', '#fbbf24', '#f97316', '#a78bfa', '#f472b6', '#34d399'],
-        borderColor: '#000',
-        borderWidth: 1,
-        borderRadius: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, grid: { color: '#e5e5e0' }, border: { color: '#000' } },
-        x: { grid: { display: false }, border: { color: '#000' } }
-      }
-    }
-  });
-
   rankList(document.getElementById(id + 'Rank'), items, fields);
-}
+
+  // Chart 单独 try-catch，避免报错阻塞后续板块渲染
+  try {
+    new Chart(document.getElementById(id + 'Chart'), {
+      type: 'bar',
+      data: {
+        labels: sorted.map(function(x) { return x[0]; }),
+        datasets: [{
+          label: '播放量（万）',
+          data: sorted.map(function(x) { return x[1].play; }),
+          backgroundColor: ['#a3e635', '#fbbf24', '#f97316', '#a78bfa', '#f472b6', '#34d399'],
+          borderColor: '#000',
+          borderWidth: 1,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#e5e5e0' }, border: { color: '#000' } },
+          x: { grid: { display: false }, border: { color: '#000' } }
+        }
+      }
+    });
+  } catch(e) {}
 
 function rankList(el, items, fields) {
   var h = '';
