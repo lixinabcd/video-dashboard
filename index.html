@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6月运营视频播放量排行榜</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@500,700&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Satoshi', sans-serif;
+  background: #f5f5f0;
+  color: #1a1a1a;
+  padding: 32px 24px;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+.subtitle { font-size: 14px; color: #666; margin-bottom: 28px; }
+
+/* ===== Stats Cards ===== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.stat-card {
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 16px;
+  padding: 18px 16px;
+  box-shadow: 2px 2px 0 0 #0a0a0d;
+}
+.stat-card .label { font-size: 12px; color: #666; margin-bottom: 4px; }
+.stat-card .value { font-size: 26px; font-weight: 700; }
+.stat-card:nth-child(1) .value { color: #a3e635; }
+.stat-card:nth-child(2) .value { color: #f59e0b; }
+.stat-card:nth-child(3) .value { color: #ef4444; }
+.stat-card:nth-child(4) .value { color: #8b5cf6; }
+.stat-card:nth-child(5) .value { color: #06b6d4; }
+
+/* ===== Section ===== */
+.section {
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 2px 2px 0 0 #0a0a0d;
+}
+.section h2 { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+.section h3 { font-size: 16px; font-weight: 700; margin: 20px 0 12px; }
+.chart-wrap { height: 300px; margin-bottom: 20px; }
+
+/* ===== Rank List ===== */
+.rank-list { display: flex; flex-direction: column; gap: 8px; }
+.ritem {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid #000;
+  border-radius: 12px;
+  background: #fafaf8;
+}
+.ritem .rn {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #e5e5e0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px;
+  flex-shrink: 0;
+}
+.ritem .rn.gold { background: #fbbf24; color: #000; }
+.ritem .rn.silver { background: #d1d5db; color: #000; }
+.ritem .rn.bronze { background: #f59e0b; color: #000; }
+.ritem .nm { flex: 1; font-weight: 700; font-size: 15px; }
+.ritem .vl, .ritem .vl2 { text-align: right; font-size: 13px; min-width: 60px; }
+.ritem .vl { font-weight: 700; }
+.ritem .vl2 { color: #666; }
+
+.double-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 768px) {
+  .double-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🏆 6月运营视频播放量排行榜</h1>
+  <p class="subtitle">月累计播放量（3K起计）· 统计周期：2025年6月</p>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div id="app"></div>
+</div>
+
+<script>
+var DATA = {
+  persons: [
+    ["徐韩妮", { play: 16.00, pub: 624, over3k: 2, opct: 0.32, us: 97.85 }],
+    ["康慧敏", { play: 1.45, pub: 441, over3k: 1, opct: 0.23, us: 98.60 }],
+    ["罗小花", { play: 0.48, pub: 633, over3k: 1, opct: 0.16, us: 46.30 }],
+    ["陈思慧", { play: 0.36, pub: 533, over3k: 1, opct: 0.19, us: 94.00 }]
+  ]
+};
+
+// Stats row
+var totalPlay = DATA.persons.reduce(function(s, p) { return s + p[1].play; }, 0);
+var totalPub = DATA.persons.reduce(function(s, p) { return s + p[1].pub; }, 0);
+var totalOver3k = DATA.persons.reduce(function(s, p) { return s + p[1].over3k; }, 0);
+var avgOpct = totalOver3k / totalPub * 100;
+var avgUs = DATA.persons.reduce(function(s, p) { return s + p[1].us; }, 0) / DATA.persons.length;
+
+var stats = [
+  { label: "月累计播放量（万）", value: totalPlay.toFixed(2) + "万" },
+  { label: "月累计发布条数", value: totalPub },
+  { label: "上3K总条数", value: totalOver3k },
+  { label: "上3K占比", value: avgOpct.toFixed(2) + "%" },
+  { label: "平均美国占比", value: avgUs.toFixed(2) + "%" }
+];
+
+var statsRow = document.getElementById('statsRow');
+stats.forEach(function(s) {
+  statsRow.insertAdjacentHTML('beforeend',
+    '<div class="stat-card"><div class="label">' + s.label + '</div><div class="value">' + s.value + '</div></div>');
+});
+
+// Render person section
+var app = document.getElementById('app');
+
+var personSection = '' +
+  '<div class="section" id="personSection">' +
+    '<h2>👤 运营人员 · 播放量对比</h2>' +
+    '<div class="chart-wrap"><canvas id="personChart"></canvas></div>' +
+    '<h3>📋 运营人员排行榜</h3>' +
+    '<div class="rank-list" id="personRank"></div>' +
+  '</div>';
+
+app.insertAdjacentHTML('beforeend', personSection);
+
+// Person chart
+var sorted = DATA.persons.slice().sort(function(a, b) { return b[1].play - a[1].play; });
+new Chart(document.getElementById('personChart'), {
+  type: 'bar',
+  data: {
+    labels: sorted.map(function(x) { return x[0]; }),
+    datasets: [{
+      label: '播放量（万）',
+      data: sorted.map(function(x) { return x[1].play; }),
+      backgroundColor: ['#a3e635', '#fbbf24', '#f97316', '#a78bfa'],
+      borderColor: '#000',
+      borderWidth: 1,
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: '#e5e5e0' }, border: { color: '#000' } },
+      x: { grid: { display: false }, border: { color: '#000' } }
+    }
+  }
+});
+
+// Person rank list
+var personFields = [
+  { k: 'play', fmt: function(v) { return v.toFixed(2) + '万'; } },
+  { k: 'pub', fmt: function(v) { return v + '条'; } },
+  { k: 'opct', fmt: function(v) { return v.toFixed(2) + '%'; } },
+  { k: 'us', fmt: function(v) { return v.toFixed(2) + '%'; } }
+];
+
+function rankList(el, items, fields, extra) {
+  var h = '';
+  for (var i = 0; i < items.length; i++) {
+    var medal = i === 0 ? ' gold' : i === 1 ? ' silver' : i === 2 ? ' bronze' : '';
+    h += '<div class="ritem">' +
+      '<div class="rn' + medal + '">' + (i + 1) + '</div>' +
+      '<div class="nm">' + items[i][0] + '</div>';
+    for (var f = 0; f < fields.length; f++) {
+      var v = fields[f].fmt ? fields[f].fmt(items[i][1]) : items[i][1][fields[f].k];
+      h += '<div class="' + (f === 0 ? 'vl' : 'vl2') + '">' + v + '</div>';
+    }
+    h += '</div>';
+  }
+  el.innerHTML = h;
+}
+
+rankList(document.getElementById('personRank'), DATA.persons, personFields);
+</script>
+</body>
+</html>
