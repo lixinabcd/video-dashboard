@@ -109,17 +109,22 @@ var DATA = {
   ]
 };
 
-// ===== Stats Cards (只统计文案数据) =====
+// ===== Stats Cards (播放量/条数/上3K 统计文案；美国占比取运营均值) =====
+function total(arr) { return arr.reduce(function(s, p) { return s + p[1].play; }, 0); }
+function totalPub(arr) { return arr.reduce(function(s, p) { return s + p[1].pub; }, 0); }
+function totalOver(arr) { return arr.reduce(function(s, p) { return s + p[1].over3k; }, 0); }
+
 var allPlay = total(DATA.writers);
 var allPub = totalPub(DATA.writers);
 var allOver = totalOver(DATA.writers);
+var avgUs = DATA.persons.reduce(function(s, p) { return s + p[1].us; }, 0) / DATA.persons.length;
 
 var stats = [
   { label: "总播放量（万）", value: allPlay.toFixed(2) + "万" },
   { label: "总发布条数", value: allPub },
   { label: "上3K总条数", value: allOver },
   { label: "上3K占比", value: (allOver / allPub * 100).toFixed(2) + "%" },
-  { label: "美国占比", value: "—" }
+  { label: "美国占比", value: avgUs.toFixed(2) + "%" }
 ];
 
 var statsRow = document.getElementById('statsRow');
